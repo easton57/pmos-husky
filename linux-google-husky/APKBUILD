@@ -1,0 +1,69 @@
+# Reference: <https://postmarketos.org/vendorkernel>
+# Kernel config based on: arch/arm64/configs/(CHANGEME!)
+
+pkgname=linux-google-husky
+pkgver=6.1.124
+pkgrel=0
+pkgdesc="Google Pixel 8 Pro kernel fork"
+arch="aarch64"
+_carch="arm64"
+_flavor="google-husky"
+url="https://kernel.org"
+license="GPL-2.0-only"
+options="!strip !check !tracedeps pmb:cross-native"
+makedepends="
+	android-tools
+	python3
+	bash
+	bc
+	bison
+	devicepkg-dev
+	findutils
+	flex
+	openssl-dev
+	perl
+	linux-headers
+	gcc
+	elfutils-dev
+"
+
+# Source
+_repository="linux-pixel"
+_commit="15e86a4dfd9b754bfe49ad99a4989d032f7c78c9"
+_config="config-$_flavor.$arch"
+source="
+	$pkgname-$_commit.tar.gz::https://github.com/easton57/$_repository/archive/$_commit.tar.gz
+	$_config
+"
+builddir="$srcdir/$_repository-$_commit"
+_outdir="out"
+
+prepare() {
+	default_prepare
+	REPLACE_GCCH=0 . downstreamkernel_prepare
+}
+
+build() {
+	unset LDFLAGS
+	make O="$_outdir" ARCH="$_carch" CC="${CC:-gcc}" \
+		KBUILD_BUILD_VERSION="$((pkgrel + 1 ))-postmarketOS"
+}
+
+package() {
+	downstreamkernel_package "$builddir" "$pkgdir" "$_carch" \
+		"$_flavor" "$_outdir"
+
+	make dtbs_install O="$_outdir" ARCH="$_carch" \
+		INSTALL_DTBS_PATH="$pkgdir"/boot/dtbs
+
+	# We also need to convert the kernel DTB into a proper android dtb image with the 64-byte header
+
+	mv "$pkgdir"/boot/dtbs/exynos/google/zuma-husky-mp-zuma-b0-ipop.dtb "$pkgdir"/boot/dtbs/exynos/google/zuma-husky-mp-zuma-b0-ipop.dtb.bak
+	mkdtboimg create "$pkgdir"/boot/dtbs/exynos/google/zuma-husky-mp-zuma-b0-ipop.dtb "$pkgdir"/boot/dtbs/exynos/google/zuma-husky-mp-zuma-b0-ipop.dtb.bak
+	rm "$pkgdir"/boot/dtbs/exynos/google/zuma-husky-mp-zuma-b0-ipop.dtb.bak
+}
+
+sha512sums="
+c9619a85903bcdefb1e2220899d1141c21b6c906ab9a850bf3e1f633d85c3430c101d3061e80b0efa818a2f7b895dbd2c150ed56407c3f4d3f430ff729be4192  linux-google-husky-15e86a4dfd9b754bfe49ad99a4989d032f7c78c9.tar.gz
+06ecfe2c0a312757006e6c5a8a27aa005266576c6b6cf18131bddaaebd886536299be1f683d6fa390efc6e854b83c94bb7f32b60d3a4d67420a2fc15a3a3d49b  config-google-husky.aarch64
+"
