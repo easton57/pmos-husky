@@ -1,4 +1,4 @@
-# Reference: <https://postmarketos.org/vendorkernel>
+# Rteference: <https://postmarketos.org/vendorkernel>
 # Kernel config based on: arch/arm64/configs/(CHANGEME!)
 
 pkgname=linux-google-husky
@@ -25,11 +25,14 @@ makedepends="
 	linux-headers
 	gcc
 	elfutils-dev
+	lz4
+	mkbootimg
 "
 
 # Source
 _repository="linux-pixel"
-_commit="15e86a4dfd9b754bfe49ad99a4989d032f7c78c9"
+_commit="0088b07046f3429f998dd4a30cba4224c0e9a09d" # AOSP
+# _commit="7f0705f383d094e10bbfddf75a0487b8e6ad632f" # Mainline efforts
 _config="config-$_flavor.$arch"
 source="
 	$pkgname-$_commit.tar.gz::https://github.com/easton57/$_repository/archive/$_commit.tar.gz
@@ -40,30 +43,47 @@ _outdir="out"
 
 prepare() {
 	default_prepare
-	REPLACE_GCCH=0 . downstreamkernel_prepare
+	cp "$srcdir/config-$_flavor.$arch" .config
 }
 
 build() {
 	unset LDFLAGS
-	make O="$_outdir" ARCH="$_carch" CC="${CC:-gcc}" \
+	make ARCH="$_carch" CC="${CC:-gcc}" \
 		KBUILD_BUILD_VERSION="$((pkgrel + 1 ))-postmarketOS"
 }
 
 package() {
-	downstreamkernel_package "$builddir" "$pkgdir" "$_carch" \
-		"$_flavor" "$_outdir"
+	mkdir -p "$pkgdir"/boot
 
-	make dtbs_install O="$_outdir" ARCH="$_carch" \
+	make Image.lz4 modules_install dtbs_install \
+		ARCH="$_carch" \
+		INSTALL_PATH="$pkgdir"/boot \
+		INSTALL_MOD_PATH="$pkgdir" \
+		INSTALL_MOD_STRIP=1 \
 		INSTALL_DTBS_PATH="$pkgdir"/boot/dtbs
+	rm -f "$pkgdir"/lib/modules/*/build "$pkgdir"/lib/modules/*/source
 
-	# We also need to convert the kernel DTB into a proper android dtb image with the 64-byte header
+	install -D "$builddir"/include/config/kernel.release \
+		"$pkgdir"/usr/share/kernel/$_flavor/kernel.release
 
-	mv "$pkgdir"/boot/dtbs/exynos/google/zuma-husky-mp-zuma-b0-ipop.dtb "$pkgdir"/boot/dtbs/exynos/google/zuma-husky-mp-zuma-b0-ipop.dtb.bak
-	mkdtboimg create "$pkgdir"/boot/dtbs/exynos/google/zuma-husky-mp-zuma-b0-ipop.dtb "$pkgdir"/boot/dtbs/exynos/google/zuma-husky-mp-zuma-b0-ipop.dtb.bak
-	rm "$pkgdir"/boot/dtbs/exynos/google/zuma-husky-mp-zuma-b0-ipop.dtb.bak
+	install -Dm644 "$builddir/arch/$_carch/boot/Image.lz4" \
+		"$pkgdir/boot/vmlinuz"
+
+	# Build a vendor_boot image
+	# mkbootimg \
+	# --vendor_boot \
+	# --header_version 4 \
+	# --pagesize 2048 \
+	# --kernel "$builddir/arch/$_carch/boot/Image.gz" \
+	# --ramdisk some_shiz \
+	# --dtb "$pkgdir/boot/dtbs/zuma-husky-mp-zuma-b0-foplp.dtb" \
+	# --kernel_addr 0x10008000 \
+	# --ramdisk_addr 0x11000000 \
+	# --dtb_addr 0x11f00000 \
+	# -o pmos_husky_vendor_kernel_boot.img
 }
 
 sha512sums="
-c9619a85903bcdefb1e2220899d1141c21b6c906ab9a850bf3e1f633d85c3430c101d3061e80b0efa818a2f7b895dbd2c150ed56407c3f4d3f430ff729be4192  linux-google-husky-15e86a4dfd9b754bfe49ad99a4989d032f7c78c9.tar.gz
-06ecfe2c0a312757006e6c5a8a27aa005266576c6b6cf18131bddaaebd886536299be1f683d6fa390efc6e854b83c94bb7f32b60d3a4d67420a2fc15a3a3d49b  config-google-husky.aarch64
+52ba0d6167596814bfdcd6d4e417ff8c65fdcb13139f36afcbca7b9403036d896974794a85a0ab66a94c71bc4b532e72257ffb1c3026bd8955071bffdd3c8422  linux-google-husky-0088b07046f3429f998dd4a30cba4224c0e9a09d.tar.gz
+7e91c09f8c4767c987b4d78afc689f9d4695f217b16f82a931d1650b7e9e820fb3651e7c11a0b22f8cf4aaf98168e1419dc1098cfe80243b6a3369b9aace0728  config-google-husky.aarch64
 "

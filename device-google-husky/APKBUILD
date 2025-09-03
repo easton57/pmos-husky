@@ -8,10 +8,11 @@ license="MIT"
 arch="aarch64"
 options="!check !archcheck"
 depends="
-	linux-google-husky
 	mkbootimg
 	postmarketos-base
+	linux-google-husky
 "
+
 makedepends="devicepkg-dev"
 source="
 	deviceinfo
@@ -27,6 +28,6 @@ package() {
 }
 
 sha512sums="
-4a396ca9faf85355ac71c5ddffcf68b5d2932745f34fefaa2e1ec5dd27e4e072c403de9d1f4e77dd42e20a41acd0b6ba5f91b26c9eee55db200a8a53c5d0092d  deviceinfo
-e70bae17df23dcaaaea0e2d3616556f04baa23f8ee1357785c0f539bf97282d8ddff53953e155b72689bb73beb38c2da3d08de2a61e866684edfa10a6593885d  modules-initfs
+320a90ea4ebf324b747ef61ec6ba8c6b5d5c362ec8d8ad20ff19e234436f8c4f0bc906098bbe5f90b0a5f3377dc99d319a5c982e8bfcbcdc33046686fb063f3e  deviceinfo
+668d9844826816980eda0ef06152058d351b3a1e77fd16f4623b65b61361131b325676b1f000d69312813c35f9e9c37a03646cef6996788c3888bf715d7c87cf  modules-initfs
 "
