@@ -8,6 +8,6 @@
 # with different initramfs module requirements, one modules-initfs.$variant
 # file should be created for each of them.
 
-#ufs-exynos
-#dm-mod
-#simplefb
+ufs-exynos
+dm-mod
+simplefb

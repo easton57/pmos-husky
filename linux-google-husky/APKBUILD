@@ -2,7 +2,8 @@
 # Kernel config based on: arch/arm64/configs/(CHANGEME!)
 
 pkgname=linux-google-husky
-pkgver=6.1.124
+# pkgver=6.1.124
+pkgver=6.17.0
 pkgrel=0
 pkgdesc="Google Pixel 8 Pro kernel fork"
 arch="aarch64"
@@ -31,8 +32,8 @@ makedepends="
 
 # Source
 _repository="linux-pixel"
-_commit="0088b07046f3429f998dd4a30cba4224c0e9a09d" # AOSP
-# _commit="7f0705f383d094e10bbfddf75a0487b8e6ad632f" # Mainline efforts
+# _commit="0088b07046f3429f998dd4a30cba4224c0e9a09d" # AOSP
+_commit="87803c16abbf5de72b28c756fa29f86fec492d29" # Mainline efforts
 _config="config-$_flavor.$arch"
 source="
 	$pkgname-$_commit.tar.gz::https://github.com/easton57/$_repository/archive/$_commit.tar.gz
@@ -84,6 +85,6 @@ package() {
 }
 
 sha512sums="
-52ba0d6167596814bfdcd6d4e417ff8c65fdcb13139f36afcbca7b9403036d896974794a85a0ab66a94c71bc4b532e72257ffb1c3026bd8955071bffdd3c8422  linux-google-husky-0088b07046f3429f998dd4a30cba4224c0e9a09d.tar.gz
-7e91c09f8c4767c987b4d78afc689f9d4695f217b16f82a931d1650b7e9e820fb3651e7c11a0b22f8cf4aaf98168e1419dc1098cfe80243b6a3369b9aace0728  config-google-husky.aarch64
+b2a2fc7184b4e6d0f828f5460d450e17926ee5f176fec61544bc7ab440399cc9919f5d33887a8e485df4b58b7be595c3b9c6fc03b405c0f5f5390e48604ece5a  linux-google-husky-87803c16abbf5de72b28c756fa29f86fec492d29.tar.gz
+5dd86e2df3f0d1e7cf18d88e41877fc2a45c41d616daa9f53160f36d5f350aff539119e90f011e341080fbe63da45f1f4b15dafb01d878cd38d93a4993295a8f  config-google-husky.aarch64
 "
